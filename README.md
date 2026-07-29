@@ -4,7 +4,7 @@ Work in progress comodore64 emulator.
   
 ## Test
   
-Deps: cc65 (for compiling test.asm)  
+Deps: cc65 (for compiling test.s)  
 Usage:   
 ```
 ca65 -g test.s
