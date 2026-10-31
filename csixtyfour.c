@@ -12,7 +12,6 @@
 
 // CPU CLOCK
 int             machine_cycle_counter = 0;
-
 // CPU CLOCK 
 
 // REGISTERS
@@ -499,24 +498,30 @@ run_6510_cpu(uint8_t *bytes)
 		}
 		case OPCODE_SBC_IMM:
 		{
+			
+			/* FOR Carry 
+			The carry works as an inverse borrow. 
+			i.e., to subtract, first set the carry. 
+			If the carry is cleared by the operation, a borrow has occurred.
+			*/
 			uint8_t old_accumulator = accumulator;
 			uint8_t operand = instrc.imm;
 			uint8_t carry_in = get_carry();
 		
 			uint16_t result =
-				(uint16_t)old_accumulator - operand - carry_in;
+				(uint16_t)old_accumulator - operand - (1 - carry_in);
 		
 			uint8_t final_result = result & 0xFF;
 		
 			// CARRY FLAG
-			if (result > 0xFF)
+			if (old_accumulator >= (uint16_t)operand + (1 - carry_in))
 				set_carry();
 			else
 				zero_carry();
 		
 			// OVERFLOW FLAG
-			if ((~(old_accumulator ^ operand) &
-				(old_accumulator ^ final_result) & 0x80) != 0)
+			if (((old_accumulator ^ final_result) &
+				(old_accumulator ^ operand) & 0x80) != 0)
 				set_overflow();
 			else
 				zero_overflow();
@@ -534,8 +539,10 @@ run_6510_cpu(uint8_t *bytes)
 				zero_zero();
 		
 			accumulator = final_result;
+		
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
+		
 			break;
 		}
 		default:
@@ -553,7 +560,7 @@ run_6510_cpu(uint8_t *bytes)
 struct D64_File
 {
 	char            disk_image[SECTOR_COUNT][SECTOR_SIZE];	// EACH SECTOR IS 256 BYTE 
-	char            error_info[SECTOR_COUNT];	// ERROR INFO IS 1 BYTE FOR EACH SECTOR.
+	char            error_info[SECTOR_COUNT];				// ERROR INFO IS 1 BYTE FOR EACH SECTOR.
 };
 
 // FLOPPY DISK SUPPORT 
@@ -577,7 +584,6 @@ main(int argc, char **argv)
 		perror("File open failed on csixtyfour: ");
 		return -1;
 	}
-	
 	fread(ROM, 1, ROM_SIZE, file);
 	fclose(file);
 	run_6510_cpu(ROM);
