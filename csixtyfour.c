@@ -30,8 +30,23 @@ int             machine_cycle_counter = 0;
 uint8_t         processor_status_register = 0;
 
 // STATUS REGISTER
-uint8_t         accumulator;
 
+/* REGISTERS 
+The 6510 CPU, like the 6502, has the following CPU 6502-Register set:
+
+A 16-bit Program Counter (PC or IP)
+An 8-bit Status Register, sometimes called .P
+An 8-bit Accumulator, or .A
+Two 8-bit Index Registers, .X and .Y
+---------------------------------------------
+IP = Instruction Pointer
+PC = Program Counter
+DOC: https://www.c64-wiki.com/wiki/CPU_6510-Register_set
+*/ 
+uint16_t 		pc;
+uint8_t         accumulator;
+uint8_t 		xregister;
+uint8_t			yregister;
 // REGISTERS
 
 // FULL OF INSTRUCTION TABLE
