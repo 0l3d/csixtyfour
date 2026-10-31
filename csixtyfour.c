@@ -21,12 +21,12 @@ int             machine_cycle_counter = 0;
 // NAME                         SYM BIT DESCRIPTION
 // Negative             N       b7      Set when an operation results in a negative number
 // Overflow             V       b6      Set when a signed addition or subtraction results in an overflow
-// Unused                       —     b5      This bit of the processor status register is not used
-// Break                        B       b4      Set when a BRK instruction is executed
+// Unused               —       b5      This bit of the processor status register is not used
+// Break                B       b4      Set when a BRK instruction is executed
 // Decimal Mode         D       b3      When set, certain instructions operate in decimal rather than binary mode
 // Interrupt Mask       I       b2      When set, interrupt requests are ignored
-// Zero                         Z       b1      Set when an operation results in a zero
-// Carry                        C       b0      Set when an unsigned addition or subtraction results in an overflow
+// Zero                 Z       b1      Set when an operation results in a zero
+// Carry                C       b0      Set when an unsigned addition or subtraction results in an overflow
 uint8_t         processor_status_register = 0;
 
 // STATUS REGISTER
@@ -309,6 +309,64 @@ struct instruction
 	uint8_t         ind;
 };
 
+
+// CARRY OPERATIONS
+void set_carry() {
+	processor_status_register |= 1;
+}
+void zero_carry() {
+	processor_status_register &= ~1;
+}
+uint8_t get_carry() {
+	return processor_status_register & 1;
+}
+// CARRY OPERATIONS
+
+// NEGATIVE OPERATIONS
+uint8_t check_negative(uint8_t number) {
+	return (number >> 7) & 1;
+}
+
+void set_negative() {
+	processor_status_register |= (1 << 7);
+}
+
+void zero_negative() {
+	processor_status_register &= ~(1 << 7);
+}
+
+uint8_t get_negative() {
+	return processor_status_register & (1 << 7);
+}
+// NEGATIVE OPERATIONS
+
+
+// ZERO OPERATIONS
+void set_zero() {
+	processor_status_register |= (1 << 1);
+}
+void zero_zero() {
+	processor_status_register &= ~(1 << 1);
+}
+uint8_t get_zero() {
+	return processor_status_register & (1 << 1);
+}
+// ZERO OPERATIONS
+
+// OVERFLOW OPERATIONS
+void set_overflow() {
+    processor_status_register |= (1 << 6);
+}
+
+void zero_overflow() {
+    processor_status_register &= ~(1 << 6);
+}
+
+uint8_t get_overflow() {
+    return (processor_status_register >> 6) & 1;
+}
+// OVERFLOW OPERATIONS
+
 // INSTRUCTION
 struct instruction
 decode_6510_opcode(uint8_t *bytes, int program_counter)
@@ -367,12 +425,12 @@ run_6510_cpu(uint8_t *bytes)
 			machine_cycle_counter += instrc.cycles;
 			break;
 		case OPCODE_CLC:
-			processor_status_register &= ~1;
+			zero_carry();
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
 			break;
 		case OPCODE_SEC:
-			processor_status_register |= 1;
+			set_carry();
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
 			break;
@@ -382,18 +440,48 @@ run_6510_cpu(uint8_t *bytes)
 			accumulator = instrc.imm;
 			break;
 		case OPCODE_ADC_IMM:
+		{
+			uint8_t old_accumulator = accumulator;
+			uint8_t operand = instrc.imm;
+			uint8_t carry_in = get_carry();
+		
+			uint16_t result =
+				(uint16_t)old_accumulator + operand + carry_in;
+		
+			uint8_t final_result = result & 0xFF;
+		
+			// CARRY FLAG
+			if (result > 0xFF)
+				set_carry();
+			else
+				zero_carry();
+		
+			// OVERFLOW FLAG
+			if ((~(old_accumulator ^ operand) &
+				(old_accumulator ^ final_result) & 0x80) != 0)
+				set_overflow();
+			else
+				zero_overflow();
+		
+			// NEGATIVE FLAG
+			if (final_result & 0x80)
+				set_negative();
+			else
+				zero_negative();
+		
+			// ZERO FLAG
+			if (final_result == 0)
+				set_zero();
+			else
+				zero_zero();
+		
+			accumulator = final_result;
+		
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
-			uint16_t        result;
-			result = accumulator + instrc.imm +
-				(processor_status_register & 1);
-			if (result > 0xFF)
-				processor_status_register |= 1;
-
-			else
-				processor_status_register &= ~1;
-			accumulator = result & 0xFF;
+		
 			break;
+		}
 		default:
 			fprintf(stderr,
 				"Illegal INSTRUCTION! Instruction hex: 0x%X\n",
@@ -419,7 +507,7 @@ uint8_t         ROM[ROM_SIZE];	// 20 KB ROM
 uint8_t         RAM[RAM_SIZE];	// 64 KB RAM
 // RAM AND ROM DECLARATION
 int
-main(int argc, char **argv)
+main(int argc, char **argv) 
 {
 	if (argv[1] == NULL) {
 		fprintf(stderr,
@@ -433,6 +521,7 @@ main(int argc, char **argv)
 		perror("File open failed on csixtyfour: ");
 		return -1;
 	}
+	
 	fread(ROM, 1, ROM_SIZE, file);
 	fclose(file);
 	run_6510_cpu(ROM);

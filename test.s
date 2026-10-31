@@ -2,8 +2,8 @@
 
 .proc main
     nop
-    lda #60
+    lda #10
     clc
-    adc #60
+    adc #10
     nop
 .endproc
