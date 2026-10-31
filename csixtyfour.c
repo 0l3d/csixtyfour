@@ -482,6 +482,47 @@ run_6510_cpu(uint8_t *bytes)
 		
 			break;
 		}
+		case OPCODE_SBC_IMM:
+		{
+			uint8_t old_accumulator = accumulator;
+			uint8_t operand = instrc.imm;
+			uint8_t carry_in = get_carry();
+		
+			uint16_t result =
+				(uint16_t)old_accumulator - operand - carry_in;
+		
+			uint8_t final_result = result & 0xFF;
+		
+			// CARRY FLAG
+			if (result > 0xFF)
+				set_carry();
+			else
+				zero_carry();
+		
+			// OVERFLOW FLAG
+			if ((~(old_accumulator ^ operand) &
+				(old_accumulator ^ final_result) & 0x80) != 0)
+				set_overflow();
+			else
+				zero_overflow();
+		
+			// NEGATIVE FLAG
+			if (final_result & 0x80)
+				set_negative();
+			else
+				zero_negative();
+		
+			// ZERO FLAG
+			if (final_result == 0)
+				set_zero();
+			else
+				zero_zero();
+		
+			accumulator = final_result;
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		}
 		default:
 			fprintf(stderr,
 				"Illegal INSTRUCTION! Instruction hex: 0x%X\n",
@@ -525,6 +566,6 @@ main(int argc, char **argv)
 	fread(ROM, 1, ROM_SIZE, file);
 	fclose(file);
 	run_6510_cpu(ROM);
-	printf("LAST Accumulator: %u\n", accumulator);
+	printf("LAST Accumulator: %d\n", (int8_t)accumulator);
 	return 0;
 }
