@@ -10,6 +10,11 @@
 #define SECTOR_SIZE 256
 #define ERROR_INFO_SIZE 1
 
+// RAM AND ROM DECLARATION 
+uint8_t         ROM[ROM_SIZE];	// 20 KB ROM 
+uint8_t         RAM[RAM_SIZE];	// 64 KB RAM
+// RAM AND ROM DECLARATION
+
 // CPU CLOCK
 int             machine_cycle_counter = 0;
 // CPU CLOCK 
@@ -381,6 +386,16 @@ uint8_t get_overflow() {
 }
 // OVERFLOW OPERATIONS
 
+uint8_t read_memory(uint16_t address)
+{
+    return RAM[address];
+}
+
+void write_memory(uint16_t address, uint8_t value)
+{
+    RAM[address] = value;
+}
+
 // INSTRUCTION
 struct instruction
 decode_6510_opcode(uint8_t *bytes, int program_counter)
@@ -407,6 +422,21 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.bytes = 2;
 		ret_val.cycles = 2;
 		ret_val.imm = bytes[program_counter + 1];
+		break;
+	case OPCODE_LDA_ABS:
+		ret_val.opcode = OPCODE_LDA_ABS;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.abs = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	
+	case OPCODE_STA_ABS:
+		ret_val.opcode = OPCODE_STA_ABS;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.abs = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
 		break;
 	case OPCODE_ADC_IMM:
 		ret_val.opcode = OPCODE_ADC_IMM;
@@ -452,6 +482,16 @@ run_6510_cpu(uint8_t *bytes)
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
 			accumulator = instrc.imm;
+			break;
+		case OPCODE_LDA_ABS:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			accumulator = read_memory(instrc.abs);
+			break;
+		case OPCODE_STA_ABS:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			write_memory(instrc.abs, accumulator);
 			break;
 		case OPCODE_ADC_IMM:
 		{
@@ -565,10 +605,6 @@ struct D64_File
 
 // FLOPPY DISK SUPPORT 
 
-// RAM AND ROM DECLARATION 
-uint8_t         ROM[ROM_SIZE];	// 20 KB ROM 
-uint8_t         RAM[RAM_SIZE];	// 64 KB RAM
-// RAM AND ROM DECLARATION
 int
 main(int argc, char **argv) 
 {

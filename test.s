@@ -3,7 +3,9 @@
 .proc main
     nop
     lda #5
-    clc
+    sec
     sbc #10
+    sta 53280
+    lda 53280
     nop
 .endproc
