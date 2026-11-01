@@ -450,6 +450,20 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.cycles = 2;
 		ret_val.imm = bytes[program_counter + 1];
 		break;
+	case OPCODE_ADC_ABS:
+		ret_val.opcode = OPCODE_ADC_ABS;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.abs = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_SBC_ABS:
+		ret_val.opcode = OPCODE_SBC_ABS;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.abs = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
 	default:
 		break;
 	}
@@ -546,6 +560,92 @@ run_6510_cpu(uint8_t *bytes)
 			*/
 			uint8_t old_accumulator = accumulator;
 			uint8_t operand = instrc.imm;
+			uint8_t carry_in = get_carry();
+		
+			uint16_t result =
+				(uint16_t)old_accumulator - operand - (1 - carry_in);
+		
+			uint8_t final_result = result & 0xFF;
+		
+			// CARRY FLAG
+			if (old_accumulator >= (uint16_t)operand + (1 - carry_in))
+				set_carry();
+			else
+				zero_carry();
+		
+			// OVERFLOW FLAG
+			if (((old_accumulator ^ final_result) &
+				(old_accumulator ^ operand) & 0x80) != 0)
+				set_overflow();
+			else
+				zero_overflow();
+		
+			// NEGATIVE FLAG
+			if (final_result & 0x80)
+				set_negative();
+			else
+				zero_negative();
+		
+			// ZERO FLAG
+			if (final_result == 0)
+				set_zero();
+			else
+				zero_zero();
+		
+			accumulator = final_result;
+		
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+		
+			break;
+		}
+		case OPCODE_ADC_ABS:
+		{
+			uint8_t old_accumulator = accumulator;
+			uint8_t operand = read_memory(instrc.abs);
+			uint8_t carry_in = get_carry();
+		
+			uint16_t result =
+				(uint16_t)old_accumulator + operand + carry_in;
+		
+			uint8_t final_result = result & 0xFF;
+		
+			// CARRY FLAG
+			if (result > 0xFF)
+				set_carry();
+			else
+				zero_carry();
+		
+			// OVERFLOW FLAG
+			if ((~(old_accumulator ^ operand) &
+				(old_accumulator ^ final_result) & 0x80) != 0)
+				set_overflow();
+			else
+				zero_overflow();
+		
+			// NEGATIVE FLAG
+			if (final_result & 0x80)
+				set_negative();
+			else
+				zero_negative();
+		
+			// ZERO FLAG
+			if (final_result == 0)
+				set_zero();
+			else
+				zero_zero();
+		
+			accumulator = final_result;
+		
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+		
+			break;
+		}
+		case OPCODE_SBC_ABS:
+		{
+			uint8_t old_accumulator = accumulator;
+			uint8_t operand = read_memory(instrc.abs);
 			uint8_t carry_in = get_carry();
 		
 			uint16_t result =
