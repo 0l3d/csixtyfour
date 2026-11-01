@@ -372,29 +372,62 @@ uint8_t get_zero() {
 }
 // ZERO OPERATIONS
 
+// BRK OPERATIONS
+void set_brk() {
+	processor_status_register |= (1 << 4);
+}
+void zero_brk() {
+	processor_status_register &= ~(1 << 4);
+}
+uint8_t get_brk() {
+	return processor_status_register & (1 << 4);
+}
+// BRK OPERATIONS
+
+// DECIMAL OPERATIONS
+void set_decimal() {
+	processor_status_register |= (1 << 3);
+}
+void zero_decimal() {
+	processor_status_register &= ~(1 << 3);
+}
+uint8_t get_decimal() {
+	return processor_status_register & (1 << 3);
+}
+// DECIMAL OPERATIONS
+
+// INTERRUPT MASK OPERATIONS
+void set_interruptmask() {
+	processor_status_register |= (1 << 2);
+}
+void zero_interruptmask() {
+	processor_status_register &= ~(1 << 2);
+}
+uint8_t get_interruptmask() {
+	return processor_status_register & (1 << 2);
+}
+// INTERRUPT MASK OPERATIONS
+
 // OVERFLOW OPERATIONS
 void set_overflow() {
     processor_status_register |= (1 << 6);
 }
-
 void zero_overflow() {
     processor_status_register &= ~(1 << 6);
 }
-
 uint8_t get_overflow() {
     return (processor_status_register >> 6) & 1;
 }
 // OVERFLOW OPERATIONS
 
-uint8_t read_memory(uint16_t address)
-{
+// MEMORY OPERATIONS 
+uint8_t read_memory(uint16_t address) {
     return RAM[address];
 }
-
-void write_memory(uint16_t address, uint8_t value)
-{
+void write_memory(uint16_t address, uint8_t value) {
     RAM[address] = value;
 }
+// MEMORY OPERATIONS
 
 // INSTRUCTION
 struct instruction
