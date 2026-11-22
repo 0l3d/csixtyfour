@@ -5,6 +5,8 @@
 #define ROM_SIZE 20480
 #define RAM_SIZE 65536
 
+
+
 // FLOPPY DISK SUPPORT 
 #define SECTOR_COUNT 683
 #define SECTOR_SIZE 256
@@ -45,12 +47,17 @@ Two 8-bit Index Registers, .X and .Y
 ---------------------------------------------
 IP = Instruction Pointer
 PC = Program Counter
+SP = Stack Pointer
 DOC: https://www.c64-wiki.com/wiki/CPU_6510-Register_set
+DOC: https://www.c64-wiki.com/wiki/Stack
 */ 
 uint16_t 		pc;
 uint8_t         accumulator;
 uint8_t 		xregister;
 uint8_t			yregister;
+// 0x100 - 0x1FF.
+uint8_t sp = 0x100;
+#define ZP_END 0x100
 // REGISTERS
 
 // FULL OF INSTRUCTION TABLE
@@ -345,15 +352,12 @@ uint8_t get_carry() {
 uint8_t check_negative(uint8_t number) {
 	return (number >> 7) & 1;
 }
-
 void set_negative() {
 	processor_status_register |= (1 << 7);
 }
-
 void zero_negative() {
 	processor_status_register &= ~(1 << 7);
 }
-
 uint8_t get_negative() {
 	return processor_status_register & (1 << 7);
 }
@@ -427,7 +431,23 @@ uint8_t read_memory(uint16_t address) {
 void write_memory(uint16_t address, uint8_t value) {
     RAM[address] = value;
 }
+
+
+// SUB MEMORY OPERATION -> STACK
+// STACK OPERATIONS 
+void push_stack(uint8_t value) {
+	write_memory(ZP_END | sp, value);
+	sp--;
+}
+uint8_t pop() {
+	sp++;
+	return read_memory(ZP_END | sp);
+}
+// STACK OPERATIONS
+// SUB MEMORY OPERATION -> STACK
+
 // MEMORY OPERATIONS
+
 
 // INSTRUCTION
 struct instruction
@@ -463,7 +483,6 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
 		break;
-	
 	case OPCODE_STA_ABS:
 		ret_val.opcode = OPCODE_STA_ABS;
 		ret_val.bytes = 3;
@@ -496,6 +515,23 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.cycles = 4;
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
+		break;	
+	case OPCODE_ADC_ZP:
+		ret_val.opcode = OPCODE_ADC_ABS;
+		ret_val.bytes = 2;
+		ret_val.cycles = 3;
+		ret_val.zp = bytes[program_counter + 1];
+		break;
+	case OPCODE_SBC_ZP:
+		ret_val.opcode = OPCODE_SBC_ABS;
+		ret_val.bytes = 2;
+		ret_val.cycles = 3;
+		ret_val.zp = bytes[program_counter + 1];
+		break;
+	case OPCODE_BRK:
+		ret_val.opcode = OPCODE_BRK;
+		ret_val.bytes = 1;
+		ret_val.cycles = 7;
 		break;
 	default:
 		break;
@@ -506,7 +542,7 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 int
 run_6510_cpu(uint8_t *bytes)
 {
-	int             program_counter = 0;
+	uint16_t             program_counter = 0;
 	while (program_counter < ROM_SIZE) {
 		struct instruction instrc =
 			decode_6510_opcode(bytes, program_counter);
@@ -518,6 +554,17 @@ run_6510_cpu(uint8_t *bytes)
 		case OPCODE_CLC:
 			zero_carry();
 			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_BRK:
+			set_brk()
+			program_counter += instrc.bytes + 1;
+			push((program_counter >> 8) & 0xFF);
+			push(program_counter & 0xFF);
+			push(processor_status_register);
+			set_interruptmask()
+			program_counter = read_memory(0xFFFE)
+                    | (read_memory(0xFFFF) << 8);
 			machine_cycle_counter += instrc.cycles;
 			break;
 		case OPCODE_SEC:
@@ -679,6 +726,92 @@ run_6510_cpu(uint8_t *bytes)
 		{
 			uint8_t old_accumulator = accumulator;
 			uint8_t operand = read_memory(instrc.abs);
+			uint8_t carry_in = get_carry();
+		
+			uint16_t result =
+				(uint16_t)old_accumulator - operand - (1 - carry_in);
+		
+			uint8_t final_result = result & 0xFF;
+		
+			// CARRY FLAG
+			if (old_accumulator >= (uint16_t)operand + (1 - carry_in))
+				set_carry();
+			else
+				zero_carry();
+		
+			// OVERFLOW FLAG
+			if (((old_accumulator ^ final_result) &
+				(old_accumulator ^ operand) & 0x80) != 0)
+				set_overflow();
+			else
+				zero_overflow();
+		
+			// NEGATIVE FLAG
+			if (final_result & 0x80)
+				set_negative();
+			else
+				zero_negative();
+		
+			// ZERO FLAG
+			if (final_result == 0)
+				set_zero();
+			else
+				zero_zero();
+		
+			accumulator = final_result;
+		
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+		
+			break;
+		}
+		case OPCODE_ADC_ZP:
+		{
+			uint8_t old_accumulator = accumulator;
+			uint8_t operand = read_memory(instrc.zp);
+			uint8_t carry_in = get_carry();
+		
+			uint16_t result =
+				(uint16_t)old_accumulator + operand + carry_in;
+		
+			uint8_t final_result = result & 0xFF;
+		
+			// CARRY FLAG
+			if (result > 0xFF)
+				set_carry();
+			else
+				zero_carry();
+		
+			// OVERFLOW FLAG
+			if ((~(old_accumulator ^ operand) &
+				(old_accumulator ^ final_result) & 0x80) != 0)
+				set_overflow();
+			else
+				zero_overflow();
+		
+			// NEGATIVE FLAG
+			if (final_result & 0x80)
+				set_negative();
+			else
+				zero_negative();
+		
+			// ZERO FLAG
+			if (final_result == 0)
+				set_zero();
+			else
+				zero_zero();
+		
+			accumulator = final_result;
+		
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+		
+			break;
+		}
+		case OPCODE_SBC_ZP:
+		{
+			uint8_t old_accumulator = accumulator;
+			uint8_t operand = read_memory(instrc.zp);
 			uint8_t carry_in = get_carry();
 		
 			uint16_t result =
