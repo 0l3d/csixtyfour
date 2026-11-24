@@ -1,11 +1,58 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// TODO: -=-=-=-= NOT IMPLEMENTED YET.
+// TODO: AND (IMM, ZP, ZPX, ABS, ABSX, ABSY, INX, IXY)
+// TODO: ORA (IMM, ZP, ZPX, ABS, ABSX, ABSY, INX, IXY)
+// TODO: EOR (IMM, ZP, ZPX, ABS, ABSX, ABSY, INX, IXY)
+// TODO: CMP (IMM, ZP, ZPX, ABS, ABSX, ABSY, INX, IXY)
+// TODO: CPX (IMM, ZP, ABS)
+// TODO: CPY (IMM, ZP, ABS)
+// TODO: BIT (ZP, ABS)
+// TODO: LDX (IMM, ZP, ZPY, ABS, ABSY)
+// TODO: LDY (IMM, ZP, ZPX, ABS, ABSX)
+// TODO: STX (ZP, ZPY, ABS)
+// TODO: STY (ZP, ZPX, ABS)
+// TODO: INC (ZP, ZPX, ABS, ABSX)
+// TODO: DEC (ZP, ZPX, ABS, ABSX)
+// TODO: INX
+// TODO: INY
+// TODO: DEX
+// TODO: DEY
+// TODO: ASL (ACC, ZP, ZPX, ABS, ABSX)
+// TODO: LSR (ACC, ZP, ZPX, ABS, ABSX)
+// TODO: ROL (ACC, ZP, ZPX, ABS, ABSX)
+// TODO: ROR (ACC, ZP, ZPX, ABS, ABSX)
+// TODO: JSR
+// TODO: RTS
+// TODO: RTI
+// TODO: PHA
+// TODO: PLA
+// TODO: PHP
+// TODO: PLP
+// TODO: TAX
+// TODO: TAY
+// TODO: TXA
+// TODO: TYA
+// TODO: TSX
+// TODO: TXS
+// TODO: CLI
+// TODO: SEI
+// TODO: CLD
+// TODO: SED
+// TODO: CLV
+// TODO: -=-=-=-= UNDOCUMENTED
+// TODO: LAX
+// TODO: SAX
+// TODO: DCP
+// TODO: ISC
+// TODO: RRA
+// TODO: ARR
+// TODO: SBX
+
 // RAM AND ROM 
 #define ROM_SIZE 20480
 #define RAM_SIZE 65536
-
-
 
 // FLOPPY DISK SUPPORT 
 #define SECTOR_COUNT 683
@@ -33,7 +80,7 @@ int             machine_cycle_counter = 0;
 // Interrupt Mask       I       b2      When set, interrupt requests are ignored
 // Zero                 Z       b1      Set when an operation results in a zero
 // Carry                C       b0      Set when an unsigned addition or subtraction results in an overflow
-uint8_t         processor_status_register = 0;
+uint8_t 		processor_status_register = 0x24;
 
 // STATUS REGISTER
 
@@ -57,7 +104,7 @@ uint8_t 		xregister;
 uint8_t			yregister;
 // 0x100 - 0x1FF.
 #define ZP_END 0x100
-uint8_t sp = 0x00;
+uint8_t sp = 0xFD;
 // REGISTERS
 
 // FULL OF INSTRUCTION TABLE
@@ -97,7 +144,7 @@ enum OpcodeTable
 	OPCODE_BEQ = 0xF0,		// 2 bytes, 2 cycles
 	OPCODE_PHP = 0x08,		// 1 bytes, 3 cycles
 	OPCODE_SBX = 0xCB,		// 2 bytes, 2 cycles
-	OPCODE_TXS = 0x94,		// 1 bytes, 2 cycles
+	OPCODE_TXS = 0x9A,		// 1 bytes, 2 cycles
 	// ADDRESSING IMPLIED
 
 	// JMP
@@ -133,9 +180,9 @@ enum OpcodeTable
 	// INC
 
 	// STY
-	OPCODE_STY_ABS = 0x84,	// 2 bytes, 3 cycles 
-	OPCODE_STY_ZP = 0x94,	// 2 bytes, 4 cycles
-	OPCODE_STY_ZPX = 0x8C,	// 3 bytes, 4 cycles 
+	OPCODE_STY_ABS = 0x8C,	// 3 bytes, 4 cycles 
+	OPCODE_STY_ZP = 0x84,	// 2 bytes, 3 cycles
+	OPCODE_STY_ZPX = 0x94,	// 2 bytes, 4 cycles 
 	// STY
 
 	// DEC 
@@ -160,10 +207,10 @@ enum OpcodeTable
 
 	// LDX
 	OPCODE_LDX_IMM = 0xA2,	// 2 bytes, 2 cycles 
-	OPCODE_LDX_ABS = 0xA6,	// 2 bytes, 3 cycles 
-	OPCODE_LDX_ABSY = 0xB6,	// 3 bytes, 4 cycles
-	OPCODE_LDX_ZP = 0xAE,	// 3 bytes, 4 cycles 
-	OPCODE_LDX_ZPY = 0xBE,	// 3 bytes, 4 cycles 
+	OPCODE_LDX_ABS = 0xAE,	// 3 bytes, 4 cycles 
+	OPCODE_LDX_ABSY = 0xBE,	// 3 bytes, 4 cycles
+	OPCODE_LDX_ZP = 0xA6,	// 2 bytes, 3 cycles 
+	OPCODE_LDX_ZPY = 0xB6,	// 2 bytes, 4 cycles 
 	// LDX
 
 	// GROUP OF BIG INSTRUCTIONS
@@ -200,31 +247,31 @@ enum OpcodeTable
 
 	//ASL
 	OPCODE_ASL_ACC = 0x0A,	// 1 bytes, 2 cycles 
-	OPCODE_ASL_ABS = 0x06,	// 2 bytes, 5 cycles 
-	OPCODE_ASL_ABSX = 0x16,	// 2 bytes, 6 cycles
-	OPCODE_ASL_ZP = 0x0E,	// 3 bytes, 6 cycles 
-	OPCODE_ASL_ZPX = 0x1E,	// 3 bytes, 7 cycles 
+	OPCODE_ASL_ABS = 0x0E,	// 3 bytes, 6 cycles 
+	OPCODE_ASL_ABSX = 0x1E,	// 3 bytes, 7 cycles
+	OPCODE_ASL_ZP = 0x06,	// 2 bytes, 5 cycles 
+	OPCODE_ASL_ZPX = 0x16,	// 2 bytes, 6 cycles 
 
 	//LSR
 	OPCODE_LSR_ACC = 0x4A,	// 1 bytes, 2 cycles 
-	OPCODE_LSR_ABS = 0x46,	// 2 bytes, 5 cycles 
-	OPCODE_LSR_ABSX = 0x56,	// 2 bytes, 6 cycles
-	OPCODE_LSR_ZP = 0x4E,	// 3 bytes, 6 cycles 
-	OPCODE_LSR_ZPX = 0x5E,	// 3 bytes, 7 cycles 
+	OPCODE_LSR_ABS = 0x4E,	// 3 bytes, 6 cycles 
+	OPCODE_LSR_ABSX = 0x5E,	// 3 bytes, 7 cycles
+	OPCODE_LSR_ZP = 0x46,	// 2 bytes, 5 cycles 
+	OPCODE_LSR_ZPX = 0x56,	// 2 bytes, 6 cycles 
 
 	//ROL
 	OPCODE_ROL_ACC = 0x2A,	// 1 bytes, 2 cycles 
-	OPCODE_ROL_ABS = 0x26,	// 2 bytes, 5 cycles 
-	OPCODE_ROL_ABSX = 0x36,	// 2 bytes, 6 cycles
-	OPCODE_ROL_ZP = 0x2E,	// 3 bytes, 6 cycles 
-	OPCODE_ROL_ZPX = 0x3E,	// 3 bytes, 7 cycles 
+	OPCODE_ROL_ABS = 0x2E,	// 3 bytes, 6 cycles 
+	OPCODE_ROL_ABSX = 0x3E,	// 3 bytes, 7 cycles
+	OPCODE_ROL_ZP = 0x26,	// 2 bytes, 5 cycles 
+	OPCODE_ROL_ZPX = 0x36,	// 2 bytes, 6 cycles 
 
 	//ROR
 	OPCODE_ROR_ACC = 0x6A,	// 1 bytes, 2 cycles 
-	OPCODE_ROR_ABS = 0x66,	// 2 bytes, 5 cycles 
-	OPCODE_ROR_ABSX = 0x76,	// 2 bytes, 6 cycles
-	OPCODE_ROR_ZP = 0x6E,	// 3 bytes, 6 cycles 
-	OPCODE_ROR_ZPX = 0x7E,	// 3 bytes, 7 cycles 
+	OPCODE_ROR_ABS = 0x6E,	// 3 bytes, 6 cycles 
+	OPCODE_ROR_ABSX = 0x7E,	// 3 bytes, 7 cycles
+	OPCODE_ROR_ZP = 0x66,	// 2 bytes, 5 cycles 
+	OPCODE_ROR_ZPX = 0x76,	// 2 bytes, 6 cycles 
 
 	// EOR
 	OPCODE_EOR_IMM = 0x49,	// 2 bytes, 2 cycles 
@@ -332,7 +379,7 @@ struct instruction
 	uint8_t         zpy;
 	uint8_t         inx;
 	uint8_t         ixy;
-	uint8_t         ind;
+	uint16_t         ind;
 };
 
 
@@ -384,7 +431,7 @@ void zero_brk() {
 	processor_status_register &= ~(1 << 4);
 }
 uint8_t get_brk() {
-	return processor_status_register & (1 << 4);
+	return (processor_status_register >> 4) & 1;
 }
 // BRK OPERATIONS
 
@@ -396,7 +443,7 @@ void zero_decimal() {
 	processor_status_register &= ~(1 << 3);
 }
 uint8_t get_decimal() {
-	return processor_status_register & (1 << 3);
+	return (processor_status_register >> 3) & 1;
 }
 // DECIMAL OPERATIONS
 
@@ -408,7 +455,7 @@ void zero_interruptmask() {
 	processor_status_register &= ~(1 << 2);
 }
 uint8_t get_interruptmask() {
-	return processor_status_register & (1 << 2);
+	return (processor_status_register >> 2) & 1;
 }
 // INTERRUPT MASK OPERATIONS
 
@@ -432,6 +479,12 @@ void write_memory(uint16_t address, uint8_t value) {
     RAM[address] = value;
 }
 
+// Single Helper
+void update_nz(uint8_t value) {
+	if (value == 0) set_zero(); else zero_zero();
+	if (value & 0x80) set_negative(); else zero_negative();
+}
+
 
 // SUB MEMORY OPERATION -> STACK
 // STACK OPERATIONS 
@@ -443,12 +496,48 @@ uint8_t pop() {
 	sp++;
 	return read_memory(ZP_END | sp);
 }
-uint8_t check_stack_o_a_u() { return (ZP_END | sp) > 0x1FF || (ZP_END | sp) < 0x100; }
-void abort_i_stack() { if (check_stack_o_a_u())fprintf(stderr, "Stack over/underflow detected!"); }
+
 // STACK OPERATIONS
 // SUB MEMORY OPERATION -> STACK
 
 // MEMORY OPERATIONS
+
+// ADDRESS OPERATIONS
+uint16_t addr_zpx(uint8_t zp)    { return (zp + xregister) & 0xFF; }
+uint16_t addr_zpy(uint8_t zp)    { return (zp + yregister) & 0xFF; }
+uint16_t addr_absx(uint16_t abs) { return abs + xregister; }
+uint16_t addr_absy(uint16_t abs) { return abs + yregister; }
+
+uint16_t addr_inx(uint8_t zp) {
+	uint8_t p = (zp + xregister) & 0xFF;
+	return read_memory(p) | (read_memory((p + 1) & 0xFF) << 8);
+}
+uint16_t addr_ixy(uint8_t zp) {
+	uint16_t base = read_memory(zp) | (read_memory((zp + 1) & 0xFF) << 8);
+	return base + yregister;
+}
+// SUB ADDRESS OPERATION -> Simple Helpers 
+void do_adc(uint8_t operand) {
+	uint16_t result = (uint16_t)accumulator + operand + get_carry();
+	uint8_t final_result = result & 0xFF;
+
+	if (result > 0xFF) set_carry(); else zero_carry();
+
+	if ((~(accumulator ^ operand) & (accumulator ^ final_result) & 0x80) != 0)
+		set_overflow();
+	else
+		zero_overflow();
+
+	accumulator = final_result;
+	update_nz(accumulator);
+}
+
+void do_sbc(uint8_t operand) {
+	do_adc(~operand);
+}
+// SUB ADDRESS OPERATION -> Simple Helpers
+
+// ADDRESS OPERATIONS
 
 // INSTRUCTION
 struct instruction
@@ -471,11 +560,24 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.bytes = 1;
 		ret_val.cycles = 2;
 		break;
+	// LDA
 	case OPCODE_LDA_IMM:
 		ret_val.opcode = OPCODE_LDA_IMM;
 		ret_val.bytes = 2;
 		ret_val.cycles = 2;
 		ret_val.imm = bytes[program_counter + 1];
+		break;
+	case OPCODE_LDA_ZP:
+		ret_val.opcode = OPCODE_LDA_ZP;
+		ret_val.bytes = 2;
+		ret_val.cycles = 3;
+		ret_val.zp = bytes[program_counter + 1];
+		break;
+	case OPCODE_LDA_ZPX:
+		ret_val.opcode = OPCODE_LDA_ZPX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 4;
+		ret_val.zpx = bytes[program_counter + 1];
 		break;
 	case OPCODE_LDA_ABS:
 		ret_val.opcode = OPCODE_LDA_ABS;
@@ -484,6 +586,46 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
 		break;
+	case OPCODE_LDA_ABSX:
+		ret_val.opcode = OPCODE_LDA_ABSX;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.absx = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_LDA_ABSY:
+		ret_val.opcode = OPCODE_LDA_ABSY;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.absy = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_LDA_INX:
+		ret_val.opcode = OPCODE_LDA_INX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 6;
+		ret_val.inx = bytes[program_counter + 1];
+		break;
+	case OPCODE_LDA_IXY:
+		ret_val.opcode = OPCODE_LDA_IXY;
+		ret_val.bytes = 2;
+		ret_val.cycles = 5;
+		ret_val.ixy = bytes[program_counter + 1];
+		break;
+
+	// STA
+	case OPCODE_STA_ZP:
+		ret_val.opcode = OPCODE_STA_ZP;
+		ret_val.bytes = 2;
+		ret_val.cycles = 3;
+		ret_val.zp = bytes[program_counter + 1];
+		break;
+	case OPCODE_STA_ZPX:
+		ret_val.opcode = OPCODE_STA_ZPX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 4;
+		ret_val.zpx = bytes[program_counter + 1];
+		break;
 	case OPCODE_STA_ABS:
 		ret_val.opcode = OPCODE_STA_ABS;
 		ret_val.bytes = 3;
@@ -491,17 +633,51 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
 		break;
+	case OPCODE_STA_ABSX:
+		ret_val.opcode = OPCODE_STA_ABSX;
+		ret_val.bytes = 3;
+		ret_val.cycles = 5;
+		ret_val.absx = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_STA_ABSY:
+		ret_val.opcode = OPCODE_STA_ABSY;
+		ret_val.bytes = 3;
+		ret_val.cycles = 5;
+		ret_val.absy = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_STA_INX:
+		ret_val.opcode = OPCODE_STA_INX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 6;
+		ret_val.inx = bytes[program_counter + 1];
+		break;
+	case OPCODE_STA_IXY:
+		ret_val.opcode = OPCODE_STA_IXY;
+		ret_val.bytes = 2;
+		ret_val.cycles = 6;
+		ret_val.ixy = bytes[program_counter + 1];
+		break;
+
+	// ADC
 	case OPCODE_ADC_IMM:
 		ret_val.opcode = OPCODE_ADC_IMM;
 		ret_val.bytes = 2;
 		ret_val.cycles = 2;
 		ret_val.imm = bytes[program_counter + 1];
 		break;
-	case OPCODE_SBC_IMM:
-		ret_val.opcode = OPCODE_SBC_IMM;
+	case OPCODE_ADC_ZP:
+		ret_val.opcode = OPCODE_ADC_ZP;
 		ret_val.bytes = 2;
-		ret_val.cycles = 2;
-		ret_val.imm = bytes[program_counter + 1];
+		ret_val.cycles = 3;
+		ret_val.zp = bytes[program_counter + 1];
+		break;
+	case OPCODE_ADC_ZPX:
+		ret_val.opcode = OPCODE_ADC_ZPX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 4;
+		ret_val.zpx = bytes[program_counter + 1];
 		break;
 	case OPCODE_ADC_ABS:
 		ret_val.opcode = OPCODE_ADC_ABS;
@@ -510,25 +686,92 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
 		break;
+	case OPCODE_ADC_ABSX:
+		ret_val.opcode = OPCODE_ADC_ABSX;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.absx = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_ADC_ABSY:
+		ret_val.opcode = OPCODE_ADC_ABSY;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.absy = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_ADC_INX:
+		ret_val.opcode = OPCODE_ADC_INX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 6;
+		ret_val.inx = bytes[program_counter + 1];
+		break;
+	case OPCODE_ADC_IXY:
+		ret_val.opcode = OPCODE_ADC_IXY;
+		ret_val.bytes = 2;
+		ret_val.cycles = 5;
+		ret_val.ixy = bytes[program_counter + 1];
+		break;
+
+	// SBC
+	case OPCODE_SBC_IMM:
+		ret_val.opcode = OPCODE_SBC_IMM;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.imm = bytes[program_counter + 1];
+		break;
+	case OPCODE_SBC_IMMt:
+		ret_val.opcode = OPCODE_SBC_IMMt;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.imm = bytes[program_counter + 1];
+		break;
+	case OPCODE_SBC_ZP:
+		ret_val.opcode = OPCODE_SBC_ZP;
+		ret_val.bytes = 2;
+		ret_val.cycles = 3;
+		ret_val.zp = bytes[program_counter + 1];
+		break;
+	case OPCODE_SBC_ZPX:
+		ret_val.opcode = OPCODE_SBC_ZPX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 4;
+		ret_val.zpx = bytes[program_counter + 1];
+		break;
 	case OPCODE_SBC_ABS:
 		ret_val.opcode = OPCODE_SBC_ABS;
 		ret_val.bytes = 3;
 		ret_val.cycles = 4;
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
-		break;	
-	case OPCODE_ADC_ZP:
-		ret_val.opcode = OPCODE_ADC_ABS;
-		ret_val.bytes = 2;
-		ret_val.cycles = 3;
-		ret_val.zp = bytes[program_counter + 1];
 		break;
-	case OPCODE_SBC_ZP:
-		ret_val.opcode = OPCODE_SBC_ABS;
-		ret_val.bytes = 2;
-		ret_val.cycles = 3;
-		ret_val.zp = bytes[program_counter + 1];
+	case OPCODE_SBC_ABSX:
+		ret_val.opcode = OPCODE_SBC_ABSX;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.absx = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
 		break;
+	case OPCODE_SBC_ABSY:
+		ret_val.opcode = OPCODE_SBC_ABSY;
+		ret_val.bytes = 3;
+		ret_val.cycles = 4;
+		ret_val.absy = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
+	case OPCODE_SBC_INX:
+		ret_val.opcode = OPCODE_SBC_INX;
+		ret_val.bytes = 2;
+		ret_val.cycles = 6;
+		ret_val.inx = bytes[program_counter + 1];
+		break;
+	case OPCODE_SBC_IXY:
+		ret_val.opcode = OPCODE_SBC_IXY;
+		ret_val.bytes = 2;
+		ret_val.cycles = 5;
+		ret_val.ixy = bytes[program_counter + 1];
+		break;
+		
 	case OPCODE_BRK:
 		ret_val.opcode = OPCODE_BRK;
 		ret_val.bytes = 1;
@@ -589,7 +832,16 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.abs = bytes[program_counter + 1] |
 					(bytes[program_counter + 2] << 8);
 		break;
+	case OPCODE_JMP_IND:
+		ret_val.opcode = OPCODE_JMP_IND;
+		ret_val.bytes = 3;
+		ret_val.cycles = 5;
+		ret_val.ind = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
 	default:
+		ret_val.opcode = bytes[program_counter];
+		ret_val.bytes = 1;
 		break;
 	}
 	return ret_val;
@@ -613,15 +865,19 @@ run_6510_cpu(uint8_t *bytes, size_t rom_size)
 			machine_cycle_counter += instrc.cycles;
 			break;
 		case OPCODE_BRK:
-			set_brk();
 			program_counter += instrc.bytes + 1;
 			push_stack((program_counter >> 8) & 0xFF);
 			push_stack(program_counter & 0xFF);
+			set_brk();
 			push_stack(processor_status_register);
-			abort_i_stack();
+			zero_brk();
 			set_interruptmask();
 			program_counter = read_memory(0xFFFE)
                     | (read_memory(0xFFFF) << 8);
+			if (program_counter == 0) {
+				printf("BRK: vector is 0, stopping.\n");
+				return 0;
+			}
 			machine_cycle_counter += instrc.cycles;
 			break;
 		case OPCODE_SEC:
@@ -629,21 +885,6 @@ run_6510_cpu(uint8_t *bytes, size_t rom_size)
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
 			break;
-		case OPCODE_LDA_IMM:
-			program_counter += instrc.bytes;
-			machine_cycle_counter += instrc.cycles;
-			accumulator = instrc.imm;
-			break;
-		case OPCODE_LDA_ABS:
-			program_counter += instrc.bytes;
-			machine_cycle_counter += instrc.cycles;
-			accumulator = read_memory(instrc.abs);
-			break;
-		case OPCODE_STA_ABS:
-			program_counter += instrc.bytes;
-			machine_cycle_counter += instrc.cycles;
-			write_memory(instrc.abs, accumulator);
-			break;	
 		case OPCODE_BPL:
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
@@ -745,270 +986,185 @@ run_6510_cpu(uint8_t *bytes, size_t rom_size)
 			machine_cycle_counter += instrc.cycles;
 			program_counter = instrc.abs;
 			break;
+		case OPCODE_JMP_IND:
+		{
+			uint16_t lo_addr = instrc.ind;
+			uint16_t hi_addr = (lo_addr & 0xFF00) | ((lo_addr + 1) & 0x00FF);
+			program_counter = read_memory(lo_addr) | (read_memory(hi_addr) << 8);
+			machine_cycle_counter += instrc.cycles;
+			break;
+		}
+		// LDA
+		case OPCODE_LDA_IMM:
+			accumulator = instrc.imm;
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_ZP:
+			accumulator = read_memory(instrc.zp);
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_ZPX:
+			accumulator = read_memory(addr_zpx(instrc.zpx));
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_ABS:
+			accumulator = read_memory(instrc.abs);
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_ABSX:
+			accumulator = read_memory(addr_absx(instrc.absx));
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_ABSY:
+			accumulator = read_memory(addr_absy(instrc.absy));
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_INX:
+			accumulator = read_memory(addr_inx(instrc.inx));
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_LDA_IXY:
+			accumulator = read_memory(addr_ixy(instrc.ixy));
+			update_nz(accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+
+		// STA
+		case OPCODE_STA_ZP:
+			write_memory(instrc.zp, accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_STA_ZPX:
+			write_memory(addr_zpx(instrc.zpx), accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_STA_ABS:
+			write_memory(instrc.abs, accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_STA_ABSX:
+			write_memory(addr_absx(instrc.absx), accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_STA_ABSY:
+			write_memory(addr_absy(instrc.absy), accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_STA_INX:
+			write_memory(addr_inx(instrc.inx), accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_STA_IXY:
+			write_memory(addr_ixy(instrc.ixy), accumulator);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+
+		// ADC
 		case OPCODE_ADC_IMM:
-		{
-			uint8_t old_accumulator = accumulator;
-			uint8_t operand = instrc.imm;
-			uint8_t carry_in = get_carry();
-		
-			uint16_t result =
-				(uint16_t)old_accumulator + operand + carry_in;
-		
-			uint8_t final_result = result & 0xFF;
-		
-			// CARRY FLAG
-			if (result > 0xFF)
-				set_carry();
-			else
-				zero_carry();
-		
-			// OVERFLOW FLAG
-			if ((~(old_accumulator ^ operand) &
-				(old_accumulator ^ final_result) & 0x80) != 0)
-				set_overflow();
-			else
-				zero_overflow();
-		
-			// NEGATIVE FLAG
-			if (final_result & 0x80)
-				set_negative();
-			else
-				zero_negative();
-		
-			// ZERO FLAG
-			if (final_result == 0)
-				set_zero();
-			else
-				zero_zero();
-		
-			accumulator = final_result;
-		
+			do_adc(instrc.imm);
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
-		
 			break;
-		}
-		case OPCODE_SBC_IMM:
-		{
-			
-			/* FOR Carry 
-			The carry works as an inverse borrow. 
-			i.e., to subtract, first set the carry. 
-			If the carry is cleared by the operation, a borrow has occurred.
-			*/
-			uint8_t old_accumulator = accumulator;
-			uint8_t operand = instrc.imm;
-			uint8_t carry_in = get_carry();
-		
-			uint16_t result =
-				(uint16_t)old_accumulator - operand - (1 - carry_in);
-		
-			uint8_t final_result = result & 0xFF;
-		
-			// CARRY FLAG
-			if (old_accumulator >= (uint16_t)operand + (1 - carry_in))
-				set_carry();
-			else
-				zero_carry();
-		
-			// OVERFLOW FLAG
-			if (((old_accumulator ^ final_result) &
-				(old_accumulator ^ operand) & 0x80) != 0)
-				set_overflow();
-			else
-				zero_overflow();
-		
-			// NEGATIVE FLAG
-			if (final_result & 0x80)
-				set_negative();
-			else
-				zero_negative();
-		
-			// ZERO FLAG
-			if (final_result == 0)
-				set_zero();
-			else
-				zero_zero();
-		
-			accumulator = final_result;
-		
-			program_counter += instrc.bytes;
-			machine_cycle_counter += instrc.cycles;
-		
-			break;
-		}
-		case OPCODE_ADC_ABS:
-		{
-			uint8_t old_accumulator = accumulator;
-			uint8_t operand = read_memory(instrc.abs);
-			uint8_t carry_in = get_carry();
-		
-			uint16_t result =
-				(uint16_t)old_accumulator + operand + carry_in;
-		
-			uint8_t final_result = result & 0xFF;
-		
-			// CARRY FLAG
-			if (result > 0xFF)
-				set_carry();
-			else
-				zero_carry();
-		
-			// OVERFLOW FLAG
-			if ((~(old_accumulator ^ operand) &
-				(old_accumulator ^ final_result) & 0x80) != 0)
-				set_overflow();
-			else
-				zero_overflow();
-		
-			// NEGATIVE FLAG
-			if (final_result & 0x80)
-				set_negative();
-			else
-				zero_negative();
-		
-			// ZERO FLAG
-			if (final_result == 0)
-				set_zero();
-			else
-				zero_zero();
-		
-			accumulator = final_result;
-		
-			program_counter += instrc.bytes;
-			machine_cycle_counter += instrc.cycles;
-		
-			break;
-		}
-		case OPCODE_SBC_ABS:
-		{
-			uint8_t old_accumulator = accumulator;
-			uint8_t operand = read_memory(instrc.abs);
-			uint8_t carry_in = get_carry();
-		
-			uint16_t result =
-				(uint16_t)old_accumulator - operand - (1 - carry_in);
-		
-			uint8_t final_result = result & 0xFF;
-		
-			// CARRY FLAG
-			if (old_accumulator >= (uint16_t)operand + (1 - carry_in))
-				set_carry();
-			else
-				zero_carry();
-		
-			// OVERFLOW FLAG
-			if (((old_accumulator ^ final_result) &
-				(old_accumulator ^ operand) & 0x80) != 0)
-				set_overflow();
-			else
-				zero_overflow();
-		
-			// NEGATIVE FLAG
-			if (final_result & 0x80)
-				set_negative();
-			else
-				zero_negative();
-		
-			// ZERO FLAG
-			if (final_result == 0)
-				set_zero();
-			else
-				zero_zero();
-		
-			accumulator = final_result;
-		
-			program_counter += instrc.bytes;
-			machine_cycle_counter += instrc.cycles;
-		
-			break;
-		}
 		case OPCODE_ADC_ZP:
-		{
-			uint8_t old_accumulator = accumulator;
-			uint8_t operand = read_memory(instrc.zp);
-			uint8_t carry_in = get_carry();
-		
-			uint16_t result =
-				(uint16_t)old_accumulator + operand + carry_in;
-		
-			uint8_t final_result = result & 0xFF;
-		
-			// CARRY FLAG
-			if (result > 0xFF)
-				set_carry();
-			else
-				zero_carry();
-		
-			// OVERFLOW FLAG
-			if ((~(old_accumulator ^ operand) &
-				(old_accumulator ^ final_result) & 0x80) != 0)
-				set_overflow();
-			else
-				zero_overflow();
-		
-			// NEGATIVE FLAG
-			if (final_result & 0x80)
-				set_negative();
-			else
-				zero_negative();
-		
-			// ZERO FLAG
-			if (final_result == 0)
-				set_zero();
-			else
-				zero_zero();
-		
-			accumulator = final_result;
-		
+			do_adc(read_memory(instrc.zp));
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
-		
 			break;
-		}
+		case OPCODE_ADC_ZPX:
+			do_adc(read_memory(addr_zpx(instrc.zpx)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_ADC_ABS:
+			do_adc(read_memory(instrc.abs));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_ADC_ABSX:
+			do_adc(read_memory(addr_absx(instrc.absx)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_ADC_ABSY:
+			do_adc(read_memory(addr_absy(instrc.absy)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_ADC_INX:
+			do_adc(read_memory(addr_inx(instrc.inx)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_ADC_IXY:
+			do_adc(read_memory(addr_ixy(instrc.ixy)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+
+		// SBC
+		case OPCODE_SBC_IMM:
+		case OPCODE_SBC_IMMt:
+			do_sbc(instrc.imm);
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
 		case OPCODE_SBC_ZP:
-		{
-			uint8_t old_accumulator = accumulator;
-			uint8_t operand = read_memory(instrc.zp);
-			uint8_t carry_in = get_carry();
-		
-			uint16_t result =
-				(uint16_t)old_accumulator - operand - (1 - carry_in);
-		
-			uint8_t final_result = result & 0xFF;
-		
-			// CARRY FLAG
-			if (old_accumulator >= (uint16_t)operand + (1 - carry_in))
-				set_carry();
-			else
-				zero_carry();
-		
-			// OVERFLOW FLAG
-			if (((old_accumulator ^ final_result) &
-				(old_accumulator ^ operand) & 0x80) != 0)
-				set_overflow();
-			else
-				zero_overflow();
-		
-			// NEGATIVE FLAG
-			if (final_result & 0x80)
-				set_negative();
-			else
-				zero_negative();
-		
-			// ZERO FLAG
-			if (final_result == 0)
-				set_zero();
-			else
-				zero_zero();
-		
-			accumulator = final_result;
-		
+			do_sbc(read_memory(instrc.zp));
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
-		
 			break;
-		}
+		case OPCODE_SBC_ZPX:
+			do_sbc(read_memory(addr_zpx(instrc.zpx)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_SBC_ABS:
+			do_sbc(read_memory(instrc.abs));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_SBC_ABSX:
+			do_sbc(read_memory(addr_absx(instrc.absx)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_SBC_ABSY:
+			do_sbc(read_memory(addr_absy(instrc.absy)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_SBC_INX:
+			do_sbc(read_memory(addr_inx(instrc.inx)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
+		case OPCODE_SBC_IXY:
+			do_sbc(read_memory(addr_ixy(instrc.ixy)));
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			break;
 		default:
 			fprintf(stderr,
 				"Illegal INSTRUCTION! Instruction hex: 0x%X\n",
