@@ -56,8 +56,8 @@ uint8_t         accumulator;
 uint8_t 		xregister;
 uint8_t			yregister;
 // 0x100 - 0x1FF.
-uint8_t sp = 0x100;
-#define ZP_END 0x100
+#define ZP_END 0x00
+uint8_t sp = ZP_END;
 // REGISTERS
 
 // FULL OF INSTRUCTION TABLE
@@ -443,6 +443,8 @@ uint8_t pop() {
 	sp++;
 	return read_memory(ZP_END | sp);
 }
+uint8_t check_stack_o_a_u() { return (ZP_END | sp) > 0x1FF || (ZP_END | sp) < 0x100; }
+void abort_i_stack() { if (check_stack_o_a_u())fprintf(stderr, "Stack over/underflow detected!"); }
 // STACK OPERATIONS
 // SUB MEMORY OPERATION -> STACK
 
@@ -557,12 +559,13 @@ run_6510_cpu(uint8_t *bytes)
 			machine_cycle_counter += instrc.cycles;
 			break;
 		case OPCODE_BRK:
-			set_brk()
+			set_brk();
 			program_counter += instrc.bytes + 1;
-			push((program_counter >> 8) & 0xFF);
-			push(program_counter & 0xFF);
-			push(processor_status_register);
-			set_interruptmask()
+			push_stack((program_counter >> 8) & 0xFF);
+			push_stack(program_counter & 0xFF);
+			push_stack(processor_status_register);
+			abort_i_stack();
+			set_interruptmask();
 			program_counter = read_memory(0xFFFE)
                     | (read_memory(0xFFFF) << 8);
 			machine_cycle_counter += instrc.cycles;
