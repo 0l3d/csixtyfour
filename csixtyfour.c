@@ -56,8 +56,8 @@ uint8_t         accumulator;
 uint8_t 		xregister;
 uint8_t			yregister;
 // 0x100 - 0x1FF.
-#define ZP_END 0x00
-uint8_t sp = ZP_END;
+#define ZP_END 0x100
+uint8_t sp = 0x00;
 // REGISTERS
 
 // FULL OF INSTRUCTION TABLE
