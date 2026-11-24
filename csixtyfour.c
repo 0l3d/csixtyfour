@@ -64,45 +64,45 @@ uint8_t sp = 0x00;
 enum OpcodeTable
 {
 	// ADDRESSING IMPLIED
-	OPCODE_BRK = 0x00,	// 1 bytes, 7 cycles 
-	OPCODE_NOP = 0xEA,	// 1 bytes, 2 cycles 
-	OPCODE_BPL = 0x10,	// 2 bytes, 2 cycles 
-	OPCODE_JSR = 0x20,	// 3 bytes, 6 cycles
-	OPCODE_BMI = 0x30,	// 2 bytes, 2 cycles 
-	OPCODE_RTI = 0x40,	// 1 bytes, 6 cycles 
-	OPCODE_BVC = 0x50,	// 2 bytes, 2 cycl
-	OPCODE_RTS = 0x60,	// 1 bytes, 6 cycles 
-	OPCODE_BVS = 0x70,	// 2 bytes, 2 cycles 
-	OPCODE_BCC = 0x90,	// 2 bytes, 2 cycles 
-	OPCODE_CLC = 0x18,	// 1 bytes 2 cycles
-	OPCODE_PLP = 0x28,	// 1 bytes 4 cycles
-	OPCODE_SEC = 0x38,	// 1 bytes 2 cycles
-	OPCODE_PHA = 0x48,	// 1 bytes 3 cycles
-	OPCODE_CLI = 0x58,	// 1 bytes 2 cycles 
-	OPCODE_PLA = 0x68,	// 1 bytes 4 cycles
-	OPCODE_SEI = 0x78,	// 1 bytes 2 cycles 
-	OPCODE_DEY = 0x88,	// 1 bytes 2 cycles 
-	OPCODE_TYA = 0x98,	// 1 bytes 2 cycles
-	OPCODE_TXA = 0x8A,	// 1 bytes 2 cycles
-	OPCODE_TAY = 0xA8,	// 1 bytes 2 cycles
-	OPCODE_TAX = 0xAA,	// 1 bytes 2 cycles
-	OPCODE_TSX = 0xBA,	// 1 bytes 2 cycles 
-	OPCODE_DEX = 0xCA,	// 1 bytes 2 cycles
-	OPCODE_ARR = 0x6B,	// 2 bytes 2 cycles
-	OPCODE_CLV = 0xB8,	// 1 bytes 2 cycles
-	OPCODE_INY = 0xC8,	// 1 bytes 2 cycles
-	OPCODE_CLD = 0xD8,	// 1 bytes 2 cycles 
-	OPCODE_INX = 0xE8,	// 1 bytes 2 cycles 
-	OPCODE_SED = 0xF8,	// 1 bytes 2 cycles 
-	OPCODE_BEQ = 0xF0,	// 2 bytes, 2 cycles
-	OPCODE_PHP = 0x08,	// 1 bytes, 3 cycles
-	OPCODE_SBX = 0xCB,	// 2 bytes 2 cycles
-	OPCODE_TXS = 0x94,	// 1 bytes 2 cycles
+	OPCODE_BRK = 0x00,		// 1 bytes, 7 cycles 
+	OPCODE_NOP = 0xEA,		// 1 bytes, 2 cycles 
+	OPCODE_BPL = 0x10,		// 2 bytes, 2 cycles 
+	OPCODE_JSR = 0x20,		// 3 bytes, 6 cycles
+	OPCODE_BMI = 0x30,		// 2 bytes, 2 cycles 
+	OPCODE_RTI = 0x40,		// 1 bytes, 6 cycles 
+	OPCODE_BVC = 0x50,		// 2 bytes, 2 cycles
+	OPCODE_RTS = 0x60,		// 1 bytes, 6 cycles 
+	OPCODE_BVS = 0x70,		// 2 bytes, 2 cycles 
+	OPCODE_BCC = 0x90,		// 2 bytes, 2 cycles 
+	OPCODE_CLC = 0x18,		// 1 bytes, 2 cycles
+	OPCODE_PLP = 0x28,		// 1 bytes, 4 cycles
+	OPCODE_SEC = 0x38,		// 1 bytes, 2 cycles
+	OPCODE_PHA = 0x48,		// 1 bytes, 3 cycles
+	OPCODE_CLI = 0x58,		// 1 bytes, 2 cycles 
+	OPCODE_PLA = 0x68,		// 1 bytes, 4 cycles
+	OPCODE_SEI = 0x78,		// 1 bytes, 2 cycles 
+	OPCODE_DEY = 0x88,		// 1 bytes, 2 cycles 
+	OPCODE_TYA = 0x98,		// 1 bytes, 2 cycles
+	OPCODE_TXA = 0x8A,		// 1 bytes, 2 cycles
+	OPCODE_TAY = 0xA8,		// 1 bytes, 2 cycles
+	OPCODE_TAX = 0xAA,		// 1 bytes, 2 cycles
+	OPCODE_TSX = 0xBA,		// 1 bytes, 2 cycles 
+	OPCODE_DEX = 0xCA,		// 1 bytes, 2 cycles
+	OPCODE_ARR = 0x6B,		// 2 bytes, 2 cycles
+	OPCODE_CLV = 0xB8,		// 1 bytes, 2 cycles
+	OPCODE_INY = 0xC8,		// 1 bytes, 2 cycles
+	OPCODE_CLD = 0xD8,		// 1 bytes, 2 cycles 
+	OPCODE_INX = 0xE8,		// 1 bytes, 2 cycles 
+	OPCODE_SED = 0xF8,		// 1 bytes, 2 cycles 
+	OPCODE_BEQ = 0xF0,		// 2 bytes, 2 cycles
+	OPCODE_PHP = 0x08,		// 1 bytes, 3 cycles
+	OPCODE_SBX = 0xCB,		// 2 bytes, 2 cycles
+	OPCODE_TXS = 0x94,		// 1 bytes, 2 cycles
 	// ADDRESSING IMPLIED
 
 	// JMP
-	OPCODE_JMP_ABS = 0x4C,	// 3 bytes 3 cycles
-	OPCODE_JMP_IND = 0x6C,	// 3 bytes 5 cycles
+	OPCODE_JMP_ABS = 0x4C,	// 3 bytes, 3 cycles
+	OPCODE_JMP_IND = 0x6C,	// 3 bytes, 5 cycles
 	// JMP
 
 	//LDY 
@@ -112,13 +112,13 @@ enum OpcodeTable
 	OPCODE_LDY_ZP = 0xA4,	// 2 bytes, 3 cycles 
 	OPCODE_LDY_ZPX = 0xB4,	// 2 bytes, 4 cycles 
 	//LDY
-	OPCODE_BCS = 0xB0,	// 2 bytes, 2 cycles 
+	OPCODE_BCS = 0xB0,		// 2 bytes, 2 cycles 
 	//CPY
 	OPCODE_CPY_IMM = 0xC0,	// 2 bytes, 2 cycles 
 	OPCODE_CPY_ABS = 0xCC,	// 3 bytes, 4 cycles 
 	OPCODE_CPY_ZP = 0xC4,	// 2 bytes, 3 cycles
 	//CPY
-	OPCODE_BNE = 0xD0,	// 2 bytes, 2 cycles 
+	OPCODE_BNE = 0xD0,		// 2 bytes, 2 cycles 
 	//CPX
 	OPCODE_CPX_IMM = 0xE0,	// 2 bytes, 2 cycles 
 	OPCODE_CPX_ABS = 0xEC,	// 3 bytes, 4 cycles 
@@ -152,10 +152,10 @@ enum OpcodeTable
 	// STX
 
 	// SAX
-	OPCODE_SAX_ABS = 0x8F,	// 3 bytes 4 cycles
-	OPCODE_SAX_ZP = 0x87,	// 2 bytes 3 cycles 
-	OPCODE_SAX_ZPY = 0x97,	// 2 bytes 4 cycles
-	OPCODE_SAX_INX = 0x83,	// 2 bytes 6 cycles
+	OPCODE_SAX_ABS = 0x8F,	// 3 bytes, 4 cycles
+	OPCODE_SAX_ZP = 0x87,	// 2 bytes, 3 cycles 
+	OPCODE_SAX_ZPY = 0x97,	// 2 bytes, 4 cycles
+	OPCODE_SAX_INX = 0x83,	// 2 bytes, 6 cycles
 	// SAX
 
 	// LDX
@@ -321,7 +321,7 @@ struct instruction
 	enum OpcodeTable opcode;
 	uint8_t         bytes;
 	uint8_t         cycles;
-	uint8_t         relative;
+	int8_t         relative;
 	uint8_t         imm;
 	uint8_t         acc;
 	uint16_t        abs;
@@ -359,7 +359,7 @@ void zero_negative() {
 	processor_status_register &= ~(1 << 7);
 }
 uint8_t get_negative() {
-	return processor_status_register & (1 << 7);
+    return (processor_status_register >> 7) & 1;
 }
 // NEGATIVE OPERATIONS
 
@@ -372,7 +372,7 @@ void zero_zero() {
 	processor_status_register &= ~(1 << 1);
 }
 uint8_t get_zero() {
-	return processor_status_register & (1 << 1);
+    return (processor_status_register >> 1) & 1;
 }
 // ZERO OPERATIONS
 
@@ -449,7 +449,6 @@ void abort_i_stack() { if (check_stack_o_a_u())fprintf(stderr, "Stack over/under
 // SUB MEMORY OPERATION -> STACK
 
 // MEMORY OPERATIONS
-
 
 // INSTRUCTION
 struct instruction
@@ -535,6 +534,61 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 		ret_val.bytes = 1;
 		ret_val.cycles = 7;
 		break;
+	case OPCODE_BPL:
+		ret_val.opcode = OPCODE_BPL;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BMI:
+		ret_val.opcode = OPCODE_BMI;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BCC:
+		ret_val.opcode = OPCODE_BCC;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BCS:
+		ret_val.opcode = OPCODE_BCS;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BNE:
+		ret_val.opcode = OPCODE_BNE;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BEQ:
+		ret_val.opcode = OPCODE_BEQ;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BVC:
+		ret_val.opcode = OPCODE_BVC;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_BVS:
+		ret_val.opcode = OPCODE_BVS;
+		ret_val.bytes = 2;
+		ret_val.cycles = 2;
+		ret_val.relative = bytes[program_counter + 1];
+		break;
+	case OPCODE_JMP_ABS:
+		ret_val.opcode = OPCODE_JMP_ABS;
+		ret_val.bytes = 3;
+		ret_val.cycles = 3;
+		ret_val.abs = bytes[program_counter + 1] |
+					(bytes[program_counter + 2] << 8);
+		break;
 	default:
 		break;
 	}
@@ -542,10 +596,10 @@ decode_6510_opcode(uint8_t *bytes, int program_counter)
 }
 
 int
-run_6510_cpu(uint8_t *bytes)
+run_6510_cpu(uint8_t *bytes, size_t rom_size)
 {
 	uint16_t             program_counter = 0;
-	while (program_counter < ROM_SIZE) {
+	while (program_counter < rom_size) {
 		struct instruction instrc =
 			decode_6510_opcode(bytes, program_counter);
 		switch (instrc.opcode) {
@@ -589,6 +643,107 @@ run_6510_cpu(uint8_t *bytes)
 			program_counter += instrc.bytes;
 			machine_cycle_counter += instrc.cycles;
 			write_memory(instrc.abs, accumulator);
+			break;	
+		case OPCODE_BPL:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_negative() == 0)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BMI:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_negative() == 1)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BCC:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_carry() == 0)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BCS:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_carry() == 1)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BNE:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_zero() == 0)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BEQ:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_zero() == 1)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BVC:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_overflow() == 0)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_BVS:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			if (get_overflow() == 1)
+			{
+				uint16_t old_pc = program_counter;
+				program_counter += instrc.relative;
+				machine_cycle_counter++;
+				if ((old_pc & 0xFF00) != (program_counter & 0xFF00))
+					machine_cycle_counter++;
+			}
+			break;
+		case OPCODE_JMP_ABS:
+			program_counter += instrc.bytes;
+			machine_cycle_counter += instrc.cycles;
+			program_counter = instrc.abs;
 			break;
 		case OPCODE_ADC_IMM:
 		{
@@ -889,9 +1044,9 @@ main(int argc, char **argv)
 		perror("File open failed on csixtyfour: ");
 		return -1;
 	}
-	fread(ROM, 1, ROM_SIZE, file);
+	size_t rom_size = fread(ROM, 1, ROM_SIZE, file);
 	fclose(file);
-	run_6510_cpu(ROM);
+	run_6510_cpu(ROM, rom_size);
 	printf("LAST Accumulator: %d\n", (int8_t)accumulator);
 	return 0;
 }

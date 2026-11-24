@@ -3,32 +3,29 @@ SOURCES = csixtyfour.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET  = csixtyfour
 
-# TEST
 TEST_FILE = test.bin
-TEST_SRC = test.s
-TEST_OBJ = test.o
+TEST_SRC  = test.s
+TEST_OBJ  = test.o
 
 CFLAGS  = -g
-LDFLAGS = 
+LDFLAGS =
 
-.PHONY: all clean run
+.PHONY: all clean run ctest
 
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CC) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
 
-.c.o:
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-	
+
 ctest:
-	ca65 -g $(TEST_SRC)
-	ld65 -C none.cfg $(TEST_OBJ) -o $(TEST_FILE)
-	
+	ca65 -g $(TEST_SRC) -o $(TEST_OBJ)
+	ld65 -C test.cfg $(TEST_OBJ) -o $(TEST_FILE)
+
 run: all ctest
 	./$(TARGET) $(TEST_FILE)
-	
 
 clean:
 	rm -f $(OBJECTS) $(TARGET) $(TEST_FILE) $(TEST_OBJ)
-
